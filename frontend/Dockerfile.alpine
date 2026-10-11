@@ -1,0 +1,26 @@
+# Stage 1: Build the frontend
+FROM node:26-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# Stage 2: Run the frontend
+FROM node:26-alpine AS runner
+
+WORKDIR /app
+
+RUN npm install -g serve && npm cache clean --force
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+USER nodejs
+
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "dist", "-l", "3000"]

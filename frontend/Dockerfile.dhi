@@ -1,0 +1,19 @@
+# Stage 1: Builder stage
+FROM node:24 AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
+
+# Stage 2: Hardened Nginx runtime
+FROM dhi.io/nginx:1.31-debian13 AS runner
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 8080
