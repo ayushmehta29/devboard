@@ -1,429 +1,446 @@
-# DevBoard --- Full-Stack Task Management Application
+# DevBoard
+### A Full-Stack Project & Task Management Dashboard
 
-DevBoard is a full-stack project management dashboard built to
-demonstrate how a React frontend, Go API, and PostgreSQL database work
-together in a containerized environment.
+<p align="center">
+  <strong>React · Go · PostgreSQL · Docker</strong>
+</p>
 
-Unlike a frontend-only mockup, this version retrieves and persists
-project and task data through a backend API and database.
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Backend-Go-00ADD8?logo=go&logoColor=white" alt="Go" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Containers-Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Build-Vite-646CFF?logo=vite&logoColor=white" alt="Vite" />
+</p>
 
-## Architecture
+**DevBoard** is a full-stack project and task management dashboard built with React, Go, and PostgreSQL. It combines a modern frontend with a real backend API and persistent database, running together in a Docker-based environment.
 
-``` text
-Browser
-   |
-   v
-React + Vite frontend (:8080 on host)
-   |  /api requests
-   v
-Go backend API (:8081 on host, :8080 in container)
-   |
-   v
-PostgreSQL (:5432)
+The project demonstrates how to structure, containerize, run, and maintain a multi-service web application, with additional exploration of optimized Docker builds and container security.
+
+---
+
+## 📌 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+- [System Architecture](#-system-architecture)
+- [Technology Stack](#-technology-stack)
+- [Application Workflow](#-application-workflow)
+- [API Reference](#-api-reference)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Docker Deployment](#-docker-deployment)
+- [Container Optimization and Security](#-container-optimization-and-security)
+- [Testing and Verification](#-testing-and-verification)
+- [Learning Outcomes](#-learning-outcomes)
+- [Future Improvements](#-future-improvements)
+
+## 🎯 Overview
+
+DevBoard demonstrates a practical full-stack architecture in which the frontend, backend, and database operate as separate services.
+
+Unlike a static dashboard that displays hardcoded information, DevBoard's advanced version retrieves project and task data from a Go API backed by PostgreSQL.
+
+### Project objectives
+
+- Build an interactive project and task management interface.
+- Develop a backend REST API using Go.
+- Store and retrieve application data using PostgreSQL.
+- Connect frontend and backend services through HTTP requests.
+- Containerize the application using Docker Compose.
+- Simplify development workflows using a Makefile.
+- Explore optimized container images and secure build practices.
+
+## ✨ Features
+
+### Project Dashboard
+- Display project information through a React-based interface.
+- Organize example tasks by project.
+- Retrieve application data from the backend API.
+- Separate presentation logic from data access.
+
+### Task Management
+- Fetch tasks associated with a specific project.
+- Retrieve individual task details.
+- Explore task and project relationships through API endpoints.
+
+### Search
+- Search application data through a dedicated backend endpoint.
+
+### Backend API
+- Go-based HTTP API.
+- Health-check endpoint for service verification.
+- PostgreSQL-backed data access.
+- Separate frontend and backend responsibilities.
+
+### Docker-Based Development
+- Multi-container application using Docker Compose.
+- Dedicated frontend, backend, and database services.
+- Repeatable environment setup.
+- Convenient lifecycle commands through a Makefile.
+
+> The repository version documented here uses seeded example data. Authentication and AI functionality are not part of this version.
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TB
+    U["User / Browser"]
+    F["React + Vite Frontend"]
+    A["Go REST API"]
+    D[("PostgreSQL 16")]
+    C["Docker Compose"]
+
+    U <--> F
+    F <-->|"HTTP /api"| A
+    A <-->|"SQL Queries"| D
+
+    C -. "Manages services" .-> F
+    C -. "Manages services" .-> A
+    C -. "Manages services" .-> D
+
+    classDef frontend fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
+    classDef backend fill:#D1FAE5,stroke:#059669,color:#064E3B
+    classDef database fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95
+    classDef infra fill:#F3F4F6,stroke:#6B7280,color:#111827
+
+    class U,F frontend
+    class A backend
+    class D database
+    class C infra
 ```
 
-The frontend forwards requests beginning with `/api` to the backend. The
-Go API reads and writes data in PostgreSQL. SQL initialization scripts
-load example schema and data when the database volume is initialized for
-the first time.
+### Architecture components
 
-**Project scope:** This version focuses on the frontend/backend/database
-integration. It intentionally has no login system or AI functionality.
+| Component | Responsibility |
+|---|---|
+| React + Vite | Renders the dashboard and handles user interactions |
+| Go API | Processes requests and provides application data |
+| PostgreSQL 16 | Stores project and task data |
+| Docker Compose | Coordinates the application services |
+| Makefile | Simplifies common development and maintenance commands |
 
-## Features
+### Service communication
 
--   React frontend built with Vite
--   Go backend API
--   PostgreSQL database with initialization scripts and example data
--   API proxying from the frontend to the backend
--   Dockerfiles for building and running the frontend and backend
--   Docker Compose orchestration for the complete stack
--   Environment-based configuration using `.env`
--   Optional Makefile shortcuts for common development tasks
--   GitHub Actions CI/CD workflows configured for security scanning
-    (SonarQube/SAST and OWASP ZAP/DAST, depending on workflow
-    configuration)
--   Docker Scout vulnerability scanning experiments on alternative
-    frontend images
+1. The user opens the DevBoard frontend in a browser.
+2. The frontend sends HTTP requests to the Go API through the `/api` route.
+3. The backend processes requests and queries PostgreSQL when required.
+4. PostgreSQL returns the relevant records.
+5. The API returns a response to the frontend.
+6. The frontend renders the retrieved data.
 
-## Technology Stack
+## 🧰 Technology Stack
 
-  Component                            Technology
-  ------------------------------------ -------------------------------------------
-  Frontend                             React, Vite, Node.js
-  Backend                              Go
-  Database                             PostgreSQL 16 Alpine
-  Containerization                     Docker, Docker Compose
-  Frontend static serving              `serve` or Nginx, depending on Dockerfile
-  Image security analysis              Docker Scout
-  CI/CD security tooling               GitHub Actions, SonarQube, OWASP ZAP
-  Optional local AI tooling practice   Docker Model Runner
+| Technology | Purpose |
+|---|---|
+| React | Component-based user interface |
+| Vite | Frontend development and build tooling |
+| Go | Backend API development |
+| PostgreSQL 16 | Relational database |
+| Docker | Application containerization |
+| Docker Compose | Multi-service orchestration |
+| Make | Development workflow automation |
+| Docker Scout | Container image analysis and vulnerability scanning |
+| Docker Hardened Images | Exploration of hardened container base images |
+| Git & GitHub | Version control and collaboration |
 
-## Prerequisites
+## 🔌 API Reference
 
-You only need Docker Desktop with Docker Compose to run the full stack.
-Node.js, Go, and PostgreSQL do not need to be installed on the host for
-the containerized setup.
+The backend exposes the following endpoints.
 
-Optional tools: - Git - Docker Scout CLI, for image security scans -
-`make`, if you want to use the Makefile shortcuts
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/health` | Check API health |
+| GET | `/projects` | Retrieve projects |
+| GET | `/tasks?project_id=N` | Retrieve tasks for a project |
+| GET | `/tasks/:id` | Retrieve a specific task |
+| GET | `/search` | Search application data |
 
-## Quick Start --- Docker Compose
+Replace `N` and `:id` with actual identifiers.
 
-Run these commands from the repository root (the directory containing
-`docker-compose.yml`).
+### Example requests
 
-### 1. Create your environment file
+Retrieve projects:
 
-PowerShell:
-
-``` powershell
-Copy-Item .env.example .env
+```http
+GET /projects
 ```
 
-Linux/macOS:
+Retrieve tasks for project 1:
 
-``` bash
-cp .env.example .env
+```http
+GET /tasks?project_id=1
 ```
 
-Review `.env` and use appropriate local credentials. Do not commit the
-real `.env` file or production secrets.
+Retrieve an individual task:
 
-### 2. Build and start the stack
-
-``` powershell
-docker compose up --build
+```http
+GET /tasks/1
 ```
 
-Wait for the services to start, then open:
+Check backend health:
 
--   Frontend: <http://localhost:8080>
--   Backend health check: <http://localhost:8081/health>
--   PostgreSQL: `localhost:5432`
-
-The frontend is the main application entry point. Requests under `/api`
-are forwarded to the backend.
-
-### 3. Stop the stack
-
-``` powershell
-docker compose down
+```http
+GET /health
 ```
 
-To remove the Compose-managed database volume as well, only if you
-intentionally want to delete its persisted data:
-
-``` powershell
-docker compose down -v
-```
-
-**Warning:** `docker compose down -v` deletes the Compose-managed
-database volume and its stored data.
-
-## Manual Docker Setup
-
-The manual workflow shows what Compose automates: creating a network,
-building images, configuring services, and starting containers.
-
-> Run the following from the repository root. These commands assume the
-> paths and ports described here match the checked-out project.
-
-### 1. Create a network
-
-``` powershell
-docker network create devboard-net
-```
-
-### 2. Build the frontend and backend
-
-``` powershell
-docker build -t devboard-frontend ./frontend
-docker build -t devboard-backend ./backend
-```
-
-### 3. Start PostgreSQL
-
-PowerShell:
-
-``` powershell
-docker run -d --name postgres --network devboard-net -e POSTGRES_USER=devboard -e POSTGRES_PASSWORD=devboard -e POSTGRES_DB=devboard -v "${PWD}/init/postgres:/docker-entrypoint-initdb.d:ro" -p 5432:5432 postgres:16-alpine
-```
-
-The official PostgreSQL image runs the SQL initialization scripts when
-initializing a fresh database directory. Those scripts do not
-automatically rerun against an already initialized database directory.
-
-### 4. Start the Go backend
-
-``` powershell
-docker run -d --name backend --network devboard-net -e PORT=8080 -e POSTGRES_URL="postgres://devboard:devboard@postgres:5432/devboard?sslmode=disable" -p 8081:8080 devboard-backend
-```
-
-### 5. Start the frontend
-
-``` powershell
-docker run -d --name frontend --network devboard-net -p 8080:4173 devboard-frontend
-```
-
-### 6. Test the application
-
-Open <http://localhost:8080>.
-
-PowerShell checks:
-
-``` powershell
-curl.exe http://localhost:8081/health
-curl.exe "http://localhost:8080/api/tasks?project_id=1"
-```
-
-The second request checks the path through the frontend proxy to the
-backend and database.
-
-### 7. Clean up the manual setup
-
-``` powershell
-docker rm -f frontend backend postgres
-docker network rm devboard-net
-```
-
-If you used Docker Compose instead, use `docker compose down` rather
-than these manual cleanup commands.
-
-## API Reference
-
-The browser accesses the API through `/api`; the backend handles the
-corresponding paths without that prefix.
-
-  Method    Path                        Description
-  --------- --------------------------- -----------------------------------
-  `GET`     `/projects`                 List projects
-  `POST`    `/projects`                 Create a project
-  `GET`     `/tasks?project_id=N`       List tasks for a project
-  `POST`    `/tasks`                    Create a task
-  `PATCH`   `/tasks/:id`                Update a task, such as its status
-  `GET`     `/search?q=&project_id=N`   Search tasks by title
-  `GET`     `/health`                   Backend health check
-
-Example:
-
-``` powershell
-curl.exe "http://localhost:8080/api/tasks?project_id=1"
-```
-
-For write requests, consult the backend handlers for the expected JSON
-request body and validation rules.
-
-## Environment Configuration
-
-`.env.example` is the version-controlled template. Create `.env` locally
-and configure the values expected by `docker-compose.yml`.
-
--   Keep credentials and tokens out of Git.
--   Do not use example database credentials for a public production
-    deployment.
--   If a setting changes in `.env.example`, update this documentation
-    where appropriate.
-
-## Docker Images and Security Scanning
-
-The frontend Docker work explored three image strategies:
-
-  ------------------------------------------------------------------------------------------
-  Dockerfile                         Build stage      Runtime stage    Port inside container
-  ---------------------------------- ---------------- ---------------- ---------------------
-  `frontend/Dockerfile.multistage`   Node.js 24       Node.js Alpine +                  3000
-                                                      `serve`          
-
-  `frontend/Dockerfile.alpine`       Node.js 24       Node.js Alpine +                  3000
-                                     Alpine           `serve`          
-
-  `frontend/Dockerfile.dhi`          Node.js 24       Docker Hardened                   8080
-                                                      Nginx            
-  ------------------------------------------------------------------------------------------
-
-Build examples from the frontend directory:
-
-``` powershell
-docker build -f Dockerfile.multistage -t devboard-fe:multistage .
-docker build -f Dockerfile.alpine -t devboard-fe:alpine .
-docker build --pull --no-cache -f Dockerfile.dhi -t devboard-fe:dhi .
-```
-
-Docker Scout commands:
-
-``` powershell
-docker scout quickview local://devboard-fe:alpine
-docker scout cves devboard-fe:alpine
-docker scout policy local://devboard-fe:alpine
-
-docker scout quickview local://devboard-fe:dhi
-docker scout cves devboard-fe:dhi
-docker scout policy local://devboard-fe:dhi
-```
-
-### Previously observed scan results
-
-These are historical results from the scans performed during
-development, not a guarantee of the current vulnerability status.
-
-  Image                    Critical   High   Medium   Low
-  ---------------------- ---------- ------ -------- -----
-  `devboard-fe:dhi`               3     16       15    39
-  `devboard-fe:alpine`            0     10       12     1
-
-The DHI scan reported vulnerabilities in packages including OpenSSL,
-glibc and PCRE2. The Alpine image had fewer reported findings in that
-scan, but still had High and Medium findings.
-
-A successful build or the use of a hardened image does not guarantee
-that an image is vulnerability-free. Check current scan output, use a
-verified patched base image where available, rebuild, and scan again.
-Also review non-root execution and supply-chain attestation
-requirements.
-
-## CI/CD and DevSecOps
-
-The repository description indicates that GitHub Actions workflows are
-configured for security scanning with:
-
--   **SonarQube:** static analysis (SAST)
--   **OWASP ZAP:** dynamic application security testing (DAST)
-
-Review the workflow files under `.github/workflows/` to confirm trigger
-conditions, scan targets, and whether the most recent runs succeeded. A
-configured workflow should not be described as passing until its run
-results have been checked.
-
-### SonarQube on an EC2 instance
-
-For a self-hosted SonarQube test instance, ensure Docker is installed on
-the EC2 host. A basic container command is:
-
-``` bash
-docker run -d --name sonarqube -p 127.0.0.1:9000:9000 sonarqube:community
-```
-
-This binds the web interface to the EC2 host's loopback interface. To
-access it remotely, prefer an SSH tunnel or a properly secured reverse
-proxy/private network. Avoid opening port `9000` to the entire internet.
-
-If you intentionally configure remote access, restrict the EC2
-security-group inbound rule to trusted source IPs and follow the current
-SonarQube deployment guidance. Change the initial administrator password
-at first login.
-
-### GitHub Actions secrets
-
-In GitHub, open **Settings → Secrets and variables → Actions** and add
-only the values required by your workflow.
-
-Typical names may include:
-
--   `SONAR_TOKEN` --- a token created in SonarQube/SonarCloud
--   `SONAR_HOST_URL` --- the SonarQube server URL, if the workflow
-    expects it
--   `DOCKERHUB_USERNAME` --- Docker Hub username (often configured as a
-    variable)
--   `DOCKERHUB_TOKEN` --- Docker Hub access token (store as a secret)
-
-The exact names must match the workflow YAML. Never commit token values,
-passwords, or private keys into source files.
-
-## Docker Model Runner (Optional Learning)
-
-Docker Model Runner was also explored as part of local AI tooling
-practice. It is not part of the DevBoard application architecture
-described above.
-
-Check its availability with:
-
-``` powershell
-docker model status
-```
-
-If it is not running, enable Docker Model Runner in Docker Desktop
-settings and use the commands supported by your installed Docker
-version.
-
-## Project Structure
-
-``` text
-.
+The exact response schema and search query parameters should be verified against the API implementation.
+
+## 📁 Project Structure
+
+```text
+devboard/
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   ├── vite.config.*
+│   ├── Dockerfile.multistage
+│   ├── Dockerfile.alpine
+│   └── Dockerfile.dhi
+│
+├── backend/
+│   ├── main.go
+│   ├── go.mod
+│   └── ...
+│
+├── init/
+│   └── postgres/
+│
 ├── docker-compose.yml
 ├── Makefile
 ├── .env.example
-├── frontend/
-│   ├── Dockerfile
-│   ├── Dockerfile.multistage
-│   ├── Dockerfile.alpine
-│   ├── Dockerfile.dhi
-│   ├── package.json
-│   └── src/
-├── backend/
-│   ├── Dockerfile
-│   └── main.go
-└── init/
-    └── postgres/
+└── README.md
 ```
 
-The layout above reflects the documented project structure; exact files
-may vary. Check the repository before relying on every optional file or
-Makefile target.
+*This is a representative structure based on the project's discussed setup. Retain only paths and files that exist in your actual repository.*
 
-## Troubleshooting
+## 🚀 Getting Started
 
-### Port already in use
+### Prerequisites
 
-Check running containers:
+- Docker Desktop or Docker Engine with Docker Compose.
+- Git.
+- A terminal such as PowerShell, Windows Terminal, or a Linux shell.
 
-``` powershell
-docker ps
-docker ps -a
+**Docker is the primary prerequisite:** the standard workflow runs the frontend, backend, and PostgreSQL as containers without requiring a separate local Go or PostgreSQL installation.
+
+### 1. Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd devboard
 ```
 
-Stop and remove a conflicting container, or change the host port in the
-Compose configuration.
+Replace the placeholder with your actual GitHub repository URL.
 
-### Check logs
+### 2. Configure environment variables
 
-``` powershell
-docker compose logs
-docker compose logs frontend
-docker compose logs backend
-docker compose logs postgres
+Create your local environment file using the provided template.
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-### Database initialization did not run again
+Linux or macOS:
 
-PostgreSQL initialization scripts normally run only when the database
-data directory is first initialized. If you need a fresh database, back
-up any important data first, then intentionally remove the Compose
-volume or use the project's reset procedure.
+```bash
+cp .env.example .env
+```
 
-### Docker Scout reports vulnerabilities
+The discussed configuration uses the following values:
 
-Read the package names and fixed versions in the scan output. Update to
-an appropriate patched image or dependency, rebuild, and scan again. Do
-not assume a newer tag fixes every finding without checking the new
-scan.
+```dotenv
+POSTGRES_USER=devboard
+POSTGRES_PASSWORD=devboard
+POSTGRES_DB=devboard
+POSTGRES_URL=postgres://devboard:devboard@postgres:5432/devboard?sslmode=disable
+PORT=8080
+```
 
-## Learning Outcomes
+These are development examples, not production credentials. Use the actual variables expected by your Compose configuration and backend.
 
-This project provided practice with:
+### 3. Start the application
 
--   Connecting a React frontend, Go API, and PostgreSQL database
--   Docker images, containers, networks, port mappings, and volumes
--   Manual container orchestration versus Docker Compose
--   Multi-stage Docker builds
--   Comparing Node/Alpine and Nginx-based runtime images
--   Docker Scout vulnerability and policy scanning
--   GitHub Actions security scanning concepts, including SAST and DAST
--   Environment configuration and safer secret handling
--   Exploring Docker Model Runner separately from the application
+Build the images and start all services:
 
-## License
+```bash
+docker compose up --build
+```
 
-Add the license and attribution information that applies to this
-repository. Do not assume a license unless one has been selected for the
-project.
+To run the services in the background:
+
+```bash
+docker compose up --build -d
+```
+
+### 4. Access the application
+
+With the discussed port mappings:
+
+| Service | Local address |
+|---|---|
+| Frontend | `http://localhost:8080` |
+| Go API | `http://localhost:8081` |
+| PostgreSQL | `localhost:5432` if the database port is published |
+
+The frontend uses its configured `/api` proxy to communicate with the backend. Verify the actual Compose port mappings before relying on these addresses.
+
+## 🐳 Docker Deployment
+
+Docker Compose coordinates the services and their configuration.
+
+### Start services
+
+```bash
+docker compose up --build
+```
+
+### Run in the background
+
+```bash
+docker compose up --build -d
+```
+
+### View running containers
+
+```bash
+docker compose ps
+```
+
+### Follow service logs
+
+```bash
+docker compose logs -f
+```
+
+### Stop services
+
+```bash
+docker compose down
+```
+
+### Reset the development database
+
+If you intentionally want to remove the database's persisted Compose volume and start fresh, identify the correct volume first. The following command can permanently delete local database data:
+
+```bash
+docker compose down -v
+```
+
+Use this only when you are comfortable losing the persisted development database contents.
+
+## ⚙️ Development Workflow
+
+DevBoard includes a Makefile to simplify recurring tasks.
+
+| Command | Purpose |
+|---|---|
+| `make setup` | Prepare the development environment |
+| `make up` | Start application services |
+| `make down` | Stop application services |
+| `make logs` | Inspect application logs |
+| `make reset` | Reset the development environment |
+| `make smoke` | Run the configured smoke checks |
+
+Run these commands from the project root. The exact behavior depends on the targets defined in your Makefile.
+
+## 🔒 Container Optimization and Security
+
+The project also explores frontend containerization approaches beyond a basic Docker build.
+
+### Multi-stage builds
+
+A multi-stage Dockerfile separates the build environment from the runtime environment.
+
+Typical workflow:
+
+1. Use Node.js to install dependencies and build the Vite frontend.
+2. Generate the production assets in `dist/`.
+3. Copy only the required output into the runtime image.
+4. Avoid shipping unnecessary development dependencies in the final image.
+
+### Alpine-based runtime
+
+Alpine-based images can reduce image size by using a lightweight Linux distribution. Compatibility and security still depend on the selected image, dependencies, and configuration.
+
+### Docker Hardened Images
+
+The project includes an exploration of a Docker Hardened Image-based frontend build. The runtime configuration and exposed port depend on the selected image and its entrypoint.
+
+### Docker Scout
+
+Docker Scout can help analyze images for known vulnerabilities and review image composition.
+
+Example commands:
+
+```bash
+docker scout quickview devboard-fe:full
+docker scout cves devboard-fe:full
+```
+
+Use the image tag that you have actually built. Scan results should be reviewed and addressed rather than assumed to be clean.
+
+## 🧪 Testing and Verification
+
+Use this checklist to verify the application after starting the services.
+
+- [ ] Frontend loads successfully.
+- [ ] Backend health endpoint responds.
+- [ ] Project data is retrieved through the API.
+- [ ] Tasks can be filtered by project ID.
+- [ ] Individual task endpoint responds correctly.
+- [ ] Search endpoint behaves as expected.
+- [ ] Backend connects successfully to PostgreSQL.
+- [ ] Data remains available after an ordinary container restart.
+- [ ] Docker Compose starts the required services.
+- [ ] Frontend production build completes successfully.
+- [ ] Docker image scans have been reviewed.
+
+Only mark items as complete after testing them.
+
+## 🧠 Learning Outcomes
+
+DevBoard provides practical experience in:
+
+- Full-stack application architecture.
+- React frontend development.
+- REST API development using Go.
+- Relational database integration using PostgreSQL.
+- Inter-service communication through HTTP.
+- Containerization with Docker.
+- Multi-service orchestration with Docker Compose.
+- Environment configuration and service networking.
+- Multi-stage Docker builds.
+- Container image optimization and vulnerability analysis.
+- Development workflow automation with Make.
+- Troubleshooting application and container issues.
+
+## 🔮 Future Enhancements
+
+- [ ] Add user authentication and authorization.
+- [ ] Implement project and task creation, editing, and deletion.
+- [ ] Add automated unit and integration tests.
+- [ ] Introduce a CI/CD pipeline with GitHub Actions.
+- [ ] Add database migration management.
+- [ ] Improve structured logging and monitoring.
+- [ ] Add production deployment configuration.
+- [ ] Automate security checks for container images.
+- [ ] Add API documentation and request validation.
+
+## 👨‍💻 Author
+
+**Ayush Mehta**
+
+B.Tech — Computer Science and Engineering
+
+GitHub: [@ayushmehta29](https://github.com/ayushmehta29)
+
+---
+
+<p align="center">
+  <strong>DevBoard</strong><br />
+  <em>Building full-stack applications with Go, React, PostgreSQL, and Docker.</em>
+</p>
